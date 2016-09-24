@@ -15,7 +15,7 @@ function findThing(words, baseIndex) {
   let thing = { complete: false, definite: false, amount: 1 }
 
   let index = baseIndex
-  words.forEach(word => {
+  words.some(word => {
     if(word == 'the') {
       // "the" is referring to a thing to be specified later, so let's make just the skeleton for now
       thing.definite = true
@@ -23,7 +23,7 @@ function findThing(words, baseIndex) {
       // since we don't fit elsewhere, we must be the thing itself
       if(thing.complete)
         // multiple things in the same sentence-- when this happens legitimately, we'll have recursively called ourselves on the other things, so this should never happen
-        return err.throw(new err.SyntaxError(index, 'Multiple things provided illegitimately'))
+        return err.throw(new err.SyntaxError(index, 'Multiple things provided illegitimately')) || true
 
       thing.complete = true
       thing.name = word
@@ -33,7 +33,7 @@ function findThing(words, baseIndex) {
   })
 
   if(!thing.complete)
-    return err.throw(new err.SyntaxError(index, 'Insufficient information provided about thing'))
+    return err.throw(new err.SyntaxError(index, 'Insufficient information provided about thing')) || true
 
   return thing
 }
