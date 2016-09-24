@@ -1,5 +1,7 @@
 const readline = require('readline')
 const chalk = require('chalk')
+const cardinal = require('cardinal')
+const pretty = require('js-object-pretty-print').pretty
 const rl = readline.createInterface({ input: process.stdin })
 
 const parse = require('./parse')
@@ -10,7 +12,11 @@ const parse = require('./parse')
     process.stdout.write(chalk.styles.yellow.close)
 
     let parsed = parse(input)
-    if(parsed) console.log(chalk.styles.blue.open, parsed, chalk.styles.blue.close)
+
+    if(parsed) {
+      // pretty-print w/ highlighting
+      console.log('\n' + cardinal.highlight(pretty(parsed, 2)))
+    }
 
     repl()
   })
