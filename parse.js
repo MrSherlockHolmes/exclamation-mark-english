@@ -3,13 +3,53 @@ const err = require('./errors.js')
 function handleSentence(sentence) {
   let words = sentence.full.split(/\s+/g)
 
-  sentence.subject = findNoun(words, 0)
+
+  let subject = getNoun(words)
+  let verb = getVerb(sentence.full.substr(subject.index).split(/\s+/g), subject.got.name, subject.index)
+  let object = getNoun(sentence.full.substr(verb.index).split(/\s+/g), subject.index)
+
+  sentence.subject = subject.got
+  sentence.verb = verb.got
+  sentence.object = object.got
 
   return sentence
 }
 
-function findNoun(words, baseIndex) {
-  // findNoun finds a noun, and it's up to other functions to determine whether or not that noun is a subject or object.
+function getVerb(words, noun, baseIndex=0) {
+  let verb = {
+    tense: 'present', // implicit
+    infinitive: undefined
+  }
+
+  let gender = '?'
+  if(noun === 'he') lookingFor = 'm'
+  if(noun === 'she') lookingFor = 'f'
+
+  let person = 3
+  if(noun === 'I') person = 1
+  if(noun === 'you') person = 2
+
+  let index = baseIndex
+  words.some(word => {
+    if(verb.tense === 'present') {
+      switch(person) {
+        case 3:
+          // last letter should be "s" (e.g. He plays)
+          if(word.substr(-1) !== 's') return err.throw(new err.SyntaxError(index, `3rd person, present tense verbs should end in "s"`)) || true
+
+          return true
+        break
+      }
+    }
+
+    index += word.length
+  })
+
+  return { got: verb, index }
+}
+
+function getNoun(words, baseIndex=0) {
+  // getNoun finds a noun, and it's up to other functions to determine whether or not that noun is a subject or object.
   // it often recursively calls itself for multiple nouns in the same sentence (so, almost any sentence)
 
   let noun = { complete: false, definite: false, amount: 1 }
@@ -21,12 +61,17 @@ function findNoun(words, baseIndex) {
       noun.definite = true
     } else {
       // since we don't fit elsewhere, we must be the noun itself
+
+      /*
       if(noun.complete)
         // multiple nouns in the same sentence-- when this happens legitimately, we'll have recursively called ourselves on the other nouns, so this should never happen
         return err.throw(new err.SyntaxError(index, 'Multiple nouns provided illegitimately')) || true
+      */
 
       noun.complete = true
       noun.name = word
+
+      return true
     }
 
     index += word.length
@@ -35,7 +80,7 @@ function findNoun(words, baseIndex) {
   if(!noun.complete)
     return err.throw(new err.SyntaxError(index, 'Insufficient information provided about noun')) || true
 
-  return noun
+  return { got: noun, index }
 }
 
 module.exports = function parse(chars) {
