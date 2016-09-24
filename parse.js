@@ -3,39 +3,39 @@ const err = require('./errors.js')
 function handleSentence(sentence) {
   let words = sentence.full.split(/\s+/g)
 
-  sentence.subject = findThing(words, 0)
+  sentence.subject = findNoun(words, 0)
 
   return sentence
 }
 
-function findThing(words, baseIndex) {
-  // findThing finds a thing, and it's up to other functions to determine whether or not that thing is a subject or object.
-  // it often recursively calls itself for multiple things in the same sentence (so, almost any sentence)
+function findNoun(words, baseIndex) {
+  // findNoun finds a noun, and it's up to other functions to determine whether or not that noun is a subject or object.
+  // it often recursively calls itself for multiple nouns in the same sentence (so, almost any sentence)
 
-  let thing = { complete: false, definite: false, amount: 1 }
+  let noun = { complete: false, definite: false, amount: 1 }
 
   let index = baseIndex
   words.some(word => {
     if(word == 'the') {
-      // "the" is referring to a thing to be specified later, so let's make just the skeleton for now
-      thing.definite = true
+      // "the" is referring to a noun to be specified later, so let's make just the skeleton for now
+      noun.definite = true
     } else {
-      // since we don't fit elsewhere, we must be the thing itself
-      if(thing.complete)
-        // multiple things in the same sentence-- when this happens legitimately, we'll have recursively called ourselves on the other things, so this should never happen
-        return err.throw(new err.SyntaxError(index, 'Multiple things provided illegitimately')) || true
+      // since we don't fit elsewhere, we must be the noun itself
+      if(noun.complete)
+        // multiple nouns in the same sentence-- when this happens legitimately, we'll have recursively called ourselves on the other nouns, so this should never happen
+        return err.throw(new err.SyntaxError(index, 'Multiple nouns provided illegitimately')) || true
 
-      thing.complete = true
-      thing.name = word
+      noun.complete = true
+      noun.name = word
     }
 
     index += word.length
   })
 
-  if(!thing.complete)
-    return err.throw(new err.SyntaxError(index, 'Insufficient information provided about thing')) || true
+  if(!noun.complete)
+    return err.throw(new err.SyntaxError(index, 'Insufficient information provided about noun')) || true
 
-  return thing
+  return noun
 }
 
 module.exports = function parse(chars) {
